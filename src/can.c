@@ -12,6 +12,28 @@ static flexcan_handle_t fHandle;
 static flexcan_mb_transfer_t xfer;
 static void (*user_handler)(void);
 
+static void enterFreezeMode(CAN_Type *base)
+{
+    /* Set Freeze, Halt bits. */
+    base->MCR |= CAN_MCR_HALT_MASK;
+
+    /* Wait until the FlexCAN Module enter freeze mode. */
+    while (!(base->MCR & CAN_MCR_FRZACK_MASK))
+    {
+    }
+}
+
+static void exitFreezeMode(CAN_Type *base)
+{
+    /* Clear Freeze, Halt bits. */
+    base->MCR &= ~CAN_MCR_HALT_MASK;
+
+    /* Wait until the FlexCAN Module exit freeze mode. */
+    while (base->MCR & CAN_MCR_FRZACK_MASK)
+    {
+    }
+}
+
 void canInit(baudRate_t baudRate, bool loopback) {
     flexcan_config_t flexcanConfig;
     flexcan_rx_mb_config_t mbconfig;
@@ -32,6 +54,14 @@ void canInit(baudRate_t baudRate, bool loopback) {
         flexcanConfig.enableLoopBack = true;
     }
     FLEXCAN_Init(CAN0, &flexcanConfig, CLOCK_GetOsc0ErClkFreq());
+
+    /* Prevent reception of own messages unless we're in loopback mode */
+    if (!loopback) {
+        enterFreezeMode(CAN0);
+        CAN0->MCR |= CAN_MCR_SRXDIS_MASK;
+        exitFreezeMode(CAN0);
+    }
+
     FLEXCAN_SetTxMbConfig(CAN0, TX_BUF_ID, true);
     mbconfig.type = kFLEXCAN_FrameTypeData;
     mbconfig.format = kFLEXCAN_FrameFormatStandard;

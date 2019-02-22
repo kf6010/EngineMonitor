@@ -25,7 +25,7 @@ static void canReadTask(void);
 
 int main () {
   red = 0;
-  canInit(BD125000, true);
+  canInit(BD125000, false);
   pc.printf("EngineMonitor -- Loopback test\n");
 
   schInit();
