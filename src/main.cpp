@@ -26,8 +26,8 @@ static void canReadTask(void);
 int main()
 {
     red = 0;
-    canInit(BD125000, true);
-    pc.printf("EngineMonitor -- Loopback test\n");
+    canInit(BD125000, false);/* Not in loopback mode*/
+    pc.printf("EngineMonitor -- \n");
 
     schInit();
     schAddTask(led1ToggleTask, 0, 500);
@@ -49,7 +49,7 @@ static void led1ToggleTask(void)
 void canWriteTask(void)
 {
 
-    static canMessage_t txMsg = { 0x23, 8, 0, 0 };
+    static canMessage_t txMsg = { 0x24, 8, 0, 0 };
     bool txOk;
 
     // Transmit message on CAN 
@@ -57,7 +57,7 @@ void canWriteTask(void)
     if (txOk) {
         txCount += 1;
         txMsg.dataA = txCount;
-        txMsg.dataB = txCount;
+        txMsg.dataB = rxCount;
     }
 }
 
@@ -67,10 +67,11 @@ void canReadTask(void)
     static canMessage_t rxMsg;
 
     if (canReady()) {
+		rxCount += 1;
         canRead(&rxMsg);
         pc.printf
-            ("ID: 0x%lx LEN: 0x%01lx DATA_A: 0x%08lx DATA_B: 0x%08lx\n",
-             rxMsg.id, rxMsg.len, rxMsg.dataA, rxMsg.dataB);
+            ("ID: %#lx LEN: %lx DATA_A: %#06lx DATA_B: %#06lx\n", rxMsg.id,
+             rxMsg.len, rxMsg.dataA, rxMsg.dataB);
         rxCount += 1;
     }
 }
