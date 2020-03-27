@@ -73,6 +73,7 @@ int main()
 	/* TODO:
 	 * Add tasks TempT and TachoT to the scheduler
 	 * with appropriate delays and periods.
+	 *     TachoT should be at 20ms
 	 */
 
     schStart();
